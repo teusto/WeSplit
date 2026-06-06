@@ -224,7 +224,7 @@ export const CameraVision = ({
           <p className="text-xs text-[var(--foreground)]/60">Tip: keep the total amount visible before capturing.</p>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-[var(--foreground)]/20 bg-black/80">
+        <div className="relative overflow-hidden rounded-xl border border-[var(--foreground)]/20 bg-black/80">
           <video
             ref={videoRef}
             playsInline
@@ -244,6 +244,16 @@ export const CameraVision = ({
           {!isCameraOpen && !imageBase64 ? (
             <div className="flex min-h-64 items-center justify-center px-6 text-sm text-white/70">
               Camera preview appears here
+            </div>
+          ) : null}
+
+          {isSending ? (
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="shader-refract-overlay absolute inset-0" />
+              <div className="shader-scan-line absolute left-0 right-0 h-12" />
+              <div className="absolute inset-x-0 top-3 text-center text-xs tracking-[0.25em] text-white/80">
+                SCANNING RECEIPT
+              </div>
             </div>
           ) : null}
         </div>

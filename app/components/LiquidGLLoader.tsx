@@ -16,6 +16,7 @@ const HTML2CANVAS_CDN =
 export default function LiquidGLLoader() {
   useEffect(() => {
     let isUnmounted = false;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
     const loadScript = (src: string) =>
       new Promise<void>((resolve, reject) => {
@@ -58,7 +59,14 @@ export default function LiquidGLLoader() {
           return;
         }
 
-        window.liquidGL({
+        if (!document.querySelector(".liquidGL")) {
+          retryTimer = setTimeout(() => {
+            void boot();
+          }, 400);
+          return;
+        }
+
+        const instances = window.liquidGL({
           target: ".liquidGL",
           snapshot: "body",
           resolution: 1.3,
@@ -68,7 +76,9 @@ export default function LiquidGLLoader() {
           shadow: true,
         });
 
-        window.__liquidGLInitialized__ = true;
+        if (instances) {
+          window.__liquidGLInitialized__ = true;
+        }
       } catch (error) {
         console.error("LiquidGL failed to initialize", error);
       }
@@ -78,6 +88,9 @@ export default function LiquidGLLoader() {
 
     return () => {
       isUnmounted = true;
+      if (retryTimer) {
+        clearTimeout(retryTimer);
+      }
     };
   }, []);
 

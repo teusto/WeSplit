@@ -74,7 +74,9 @@ export const BILL_SPLIT_ABI = [
 ] as const satisfies Abi;
 
 export const BILL_SPLIT_ADDRESS =
-  process.env.NEXT_PUBLIC_BILL_SPLIT_ADDRESS || "";
+  process.env.NEXT_PUBLIC_BILL_SPLIT_ADDRESS ||
+  process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
+  "";
 
 export const billPublicClient = createPublicClient({
   chain: monadTestnet,
