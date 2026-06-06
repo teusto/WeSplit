@@ -76,7 +76,7 @@ export default function AppJourney() {
             setActiveView("create-bill");
             setCreateFlowTab("capture");
           }}
-          className={`liquidGL min-h-[124px] rounded-2xl border px-4 text-center shadow-sm transition-all duration-300 hover:bg-[var(--orange)] hover:text-black ${
+          className={`min-h-[124px] rounded-2xl border px-4 text-center shadow-sm transition-all duration-300 hover:bg-[var(--orange)] hover:text-black ${
             activeView === "create-bill"
               ? "h-16 border-[var(--highlight)] bg-[var(--highlight)] text-sm text-white"
               : "border-[var(--foreground)]/35 bg-white/75 text-xl text-[var(--foreground)]"
@@ -88,7 +88,7 @@ export default function AppJourney() {
         <button
           type="button"
           onClick={() => setActiveView("bills-to-pay")}
-          className={`liquidGL min-h-[124px] rounded-2xl border px-4 text-center shadow-sm transition-all duration-300 hover:bg-[var(--orange)] hover:text-black ${
+          className={`min-h-[124px] rounded-2xl border px-4 text-center shadow-sm transition-all duration-300 hover:bg-[var(--orange)] hover:text-black ${
             activeView === "bills-to-pay"
               ? "h-16 border-[var(--highlight)] bg-[var(--highlight)] text-sm text-white"
               : activeView === "create-bill"
