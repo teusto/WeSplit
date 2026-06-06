@@ -202,13 +202,23 @@ export const CameraVision = ({
               Open camera
             </button>
           ) : (
-            <button
-              type="button"
-              onClick={stopCamera}
-              className="w-fit rounded-full border border-[var(--foreground)]/30 px-4 py-2 text-sm text-[var(--foreground)] transition hover:border-[var(--highlight)] hover:text-[var(--highlight)]"
-            >
-              Close camera
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={sendToExtractor}
+                disabled={isSending}
+                className="rounded-full bg-[var(--highlight)] px-5 py-2 text-sm text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSending ? "Sending..." : "Capture & Send"}
+              </button>
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="rounded-full border border-[var(--foreground)]/30 px-4 py-2 text-sm text-[var(--foreground)] transition hover:border-[var(--highlight)] hover:text-[var(--highlight)]"
+              >
+                Close camera
+              </button>
+            </div>
           )}
 
           <p className="text-xs text-[var(--foreground)]/60">Tip: keep the total amount visible before capturing.</p>
@@ -237,17 +247,6 @@ export const CameraVision = ({
             </div>
           ) : null}
         </div>
-
-        <div className="flex items-end justify-center md:justify-end">
-          <button
-            type="button"
-            onClick={sendToExtractor}
-            disabled={!isCameraOpen || isSending}
-            className="rounded-full bg-[var(--highlight)] px-8 py-2 text-sm text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSending ? "Sending..." : "Capture & Extract"}
-          </button>
-        </div>
       </div>
 
       <div className="grid gap-3 rounded-xl border border-[var(--foreground)]/15 bg-white/50 p-4 md:grid-cols-2">
@@ -271,6 +270,8 @@ export const CameraVision = ({
           />
         </label>
       </div>
+
+      {!isCameraOpen ? <p className="text-xs text-[var(--foreground)]/60">Open camera to capture and send to extraction API.</p> : null}
 
       {error ? <p className="text-sm text-[var(--highlight)]">{error}</p> : null}
 
