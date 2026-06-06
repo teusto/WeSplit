@@ -1,0 +1,50 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-87a2f9dc5622b33ed63f8502b79f4cca8d70eebf",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.8.0"
+  },
+  "userSourceNameMap": {
+    "contracts/BillSplit.sol": "project/contracts/BillSplit.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": [],
+      "viaIR": true
+    },
+    "sources": {
+      "project/contracts/BillSplit.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\ncontract BillSplit {\n    struct Bill {\n        address owner;\n        uint256 totalAmount;\n        uint64 deadline;\n        string currency;\n        bool settled;\n        uint16 payerCount;\n        uint16 paidCount;\n        uint256 collectedAmount;\n        uint256[] sharesWei;\n        bool[] paid;\n    }\n\n    uint256 public nextBillId;\n    mapping(uint256 => Bill) private bills;\n\n    event BillCreated(\n        uint256 indexed billId,\n        address indexed owner,\n        uint256 totalAmount,\n        uint64 deadline,\n        string currency,\n        uint16 payerCount\n    );\n\n    event BillJoined(\n        uint256 indexed billId,\n        uint16 indexed slot,\n        address indexed payer,\n        uint256 amount\n    );\n\n    event BillSettled(\n        uint256 indexed billId,\n        address indexed owner,\n        uint256 amount\n    );\n\n    error InvalidBill();\n    error InvalidShares();\n    error InvalidDeadline();\n    error InvalidSlot();\n    error SlotAlreadyPaid();\n    error IncorrectPayment();\n    error NotOwner();\n    error AlreadySettled();\n    error SettleNotReady();\n\n    function createBill(\n        uint256 totalAmount,\n        uint16[] calldata sharesBps,\n        uint64 deadline,\n        string calldata currency\n    ) external returns (uint256 billId) {\n        if (sharesBps.length == 0 || totalAmount == 0) {\n            revert InvalidShares();\n        }\n        if (deadline <= block.timestamp) {\n            revert InvalidDeadline();\n        }\n\n        uint256 totalBps;\n        uint256[] memory sharesWei = new uint256[](sharesBps.length);\n        uint256 allocated;\n\n        for (uint256 i = 0; i < sharesBps.length; i++) {\n            uint16 bps = sharesBps[i];\n            if (bps == 0) {\n                revert InvalidShares();\n            }\n            totalBps += bps;\n            uint256 amount = (totalAmount * bps) / 10_000;\n            sharesWei[i] = amount;\n            allocated += amount;\n        }\n\n        if (totalBps != 10_000) {\n            revert InvalidShares();\n        }\n\n        if (allocated < totalAmount) {\n            sharesWei[0] += (totalAmount - allocated);\n        }\n\n        billId = nextBillId;\n        nextBillId += 1;\n\n        Bill storage bill = bills[billId];\n        bill.owner = msg.sender;\n        bill.totalAmount = totalAmount;\n        bill.deadline = deadline;\n        bill.currency = currency;\n        bill.payerCount = uint16(sharesBps.length);\n\n        for (uint256 i = 0; i < sharesWei.length; i++) {\n            bill.sharesWei.push(sharesWei[i]);\n            bill.paid.push(false);\n        }\n\n        emit BillCreated(\n            billId,\n            msg.sender,\n            totalAmount,\n            deadline,\n            currency,\n            uint16(sharesBps.length)\n        );\n    }\n\n    function joinBill(uint256 billId, uint16 slot) external payable {\n        Bill storage bill = bills[billId];\n        if (bill.owner == address(0)) {\n            revert InvalidBill();\n        }\n        if (bill.settled) {\n            revert AlreadySettled();\n        }\n        if (slot >= bill.payerCount) {\n            revert InvalidSlot();\n        }\n        if (bill.paid[slot]) {\n            revert SlotAlreadyPaid();\n        }\n\n        uint256 expected = bill.sharesWei[slot];\n        if (msg.value != expected) {\n            revert IncorrectPayment();\n        }\n\n        bill.paid[slot] = true;\n        bill.paidCount += 1;\n        bill.collectedAmount += msg.value;\n\n        emit BillJoined(billId, slot, msg.sender, msg.value);\n    }\n\n    function settle(uint256 billId) external {\n        Bill storage bill = bills[billId];\n        if (bill.owner == address(0)) {\n            revert InvalidBill();\n        }\n        if (msg.sender != bill.owner) {\n            revert NotOwner();\n        }\n        if (bill.settled) {\n            revert AlreadySettled();\n        }\n\n        bool allPaid = bill.paidCount == bill.payerCount;\n        bool deadlinePassed = block.timestamp >= bill.deadline;\n\n        if (!allPaid && !deadlinePassed) {\n            revert SettleNotReady();\n        }\n\n        bill.settled = true;\n        uint256 amount = bill.collectedAmount;\n        bill.collectedAmount = 0;\n\n        (bool ok, ) = bill.owner.call{value: amount}(\"\");\n        require(ok, \"TRANSFER_FAILED\");\n\n        emit BillSettled(billId, bill.owner, amount);\n    }\n\n    function getBill(uint256 billId)\n        external\n        view\n        returns (\n            address owner,\n            uint256 totalAmount,\n            uint64 deadline,\n            string memory currency,\n            bool settled,\n            uint16 payerCount,\n            uint16 paidCount,\n            uint256 collectedAmount\n        )\n    {\n        Bill storage bill = bills[billId];\n        if (bill.owner == address(0)) {\n            revert InvalidBill();\n        }\n\n        return (\n            bill.owner,\n            bill.totalAmount,\n            bill.deadline,\n            bill.currency,\n            bill.settled,\n            bill.payerCount,\n            bill.paidCount,\n            bill.collectedAmount\n        );\n    }\n\n    function getBillSlots(uint256 billId)\n        external\n        view\n        returns (uint256[] memory sharesWei, bool[] memory paid)\n    {\n        Bill storage bill = bills[billId];\n        if (bill.owner == address(0)) {\n            revert InvalidBill();\n        }\n\n        return (bill.sharesWei, bill.paid);\n    }\n}\n"
+      }
+    }
+  }
+}

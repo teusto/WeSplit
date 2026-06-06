@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
-import { useCreateWallet, useLogin, usePrivy, useSendTransaction, WalletWithMetadata } from "@privy-io/react-auth";
+import { useState, useCallback, useEffect } from "react";
+import { useCreateWallet, useLogin, usePrivy, useSendTransaction } from "@privy-io/react-auth";
 import { createPublicClient, http, formatEther } from "viem";
 import { monadTestnet } from "viem/chains";
 import { QRCodeSVG } from "qrcode.react";
+import { usePrivyWalletOwner } from "./privy-provider";
 
 const publicClient = createPublicClient({
   chain: monadTestnet,
@@ -26,19 +27,8 @@ export default function UseLoginPrivy() {
 
   const { sendTransaction } = useSendTransaction();
 
-  const ethereumEmbeddedWallets = useMemo<WalletWithMetadata[]>(
-    () =>
-      (user?.linkedAccounts.filter(
-        (account) =>
-          account.type === "wallet" &&
-          account.walletClientType === "privy" &&
-          account.chainType === "ethereum"
-      ) as WalletWithMetadata[]) ?? [],
-    [user]
-  );
-
-  const hasEthereumWallet = ethereumEmbeddedWallets.length > 0;
-  const walletAddress = ethereumEmbeddedWallets[0]?.address;
+  const walletAddress = usePrivyWalletOwner();
+  const hasEthereumWallet = !!walletAddress;
 
   const fetchBalance = useCallback(async () => {
     if (!walletAddress) return;

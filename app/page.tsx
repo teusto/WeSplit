@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 
-import SendNotification from "./components/SendNotification";
 import { InstallPWA } from "./components/InstallPWA";
-import UseLoginPrivy from "./components/UseLoginPrivy";
+import AppJourney from "./components/AppJourney";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -10,22 +9,29 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-4">
-            <h1 className="text-4xl md:text-5xl font-bold text-slate-800 dark:text-slate-100">
-              Next.js + Privy + Serwist
-            </h1>
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      <div className="mx-auto flex w-full max-w-4xl flex-col items-center px-4 py-10 text-center">
+        <div className="mb-10 space-y-3">
+          <div className="flex items-center justify-center">
+            <img src="/logo.png" alt="Logo" className="h-16 w-16" />
           </div>
+          <h1 className="text-5xl leading-tight">WE SPLIT</h1>
+          <p className="text-base text-[var(--foreground)]/70">
+            Split bills on Monad with a clean camera-to-payment flow.
+          </p>
+          <div className="mx-auto h-1 w-16 rounded-full bg-[var(--highlight)]" />
         </div>
-        
-        <div className="space-y-8">
-          <SendNotification />
-          <UseLoginPrivy />
+
+        <div className="w-full">
+          <AppJourney />
         </div>
+
+        <div className="mt-6 h-1 w-10 rounded-full bg-[var(--highlight)]/40" />
       </div>
-      <InstallPWA />
+
+      <div className="pb-4">
+        <InstallPWA />
+      </div>
     </div>
   );
 }

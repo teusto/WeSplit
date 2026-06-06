@@ -1,7 +1,33 @@
 "use client";
 
+import { useMemo } from "react";
 import { PrivyProvider as BasePrivyProvider } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
 import { monadTestnet } from "viem/chains";
+
+type WalletLinkedAccount = {
+  type: string;
+  walletClientType?: string;
+  chainType?: string;
+  address?: string;
+};
+
+export function usePrivyWalletOwner() {
+  const { user } = usePrivy();
+
+  return useMemo(() => {
+    const walletAccount = (user?.linkedAccounts ?? []).find((account) => {
+      const linked = account as WalletLinkedAccount;
+      return (
+        linked.type === "wallet" &&
+        linked.walletClientType === "privy" &&
+        linked.chainType === "ethereum"
+      );
+    }) as WalletLinkedAccount | undefined;
+
+    return walletAccount?.address ?? null;
+  }, [user]);
+}
 
 export default function PrivyProvider({
   children,

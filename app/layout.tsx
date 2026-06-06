@@ -2,19 +2,15 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import PrivyProvider from "./components/privy-provider";
+import LiquidGLLoader from "./components/LiquidGLLoader";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
+const instrumentSerif = localFont({
+  src: "./fonts/InstrumentSerif-Regular.ttf",
+  variable: "--font-instrument",
   weight: "100 900",
 });
 
-const APP_NAME = "PWA App";
+const APP_NAME = "WE SPLIT";
 const APP_DEFAULT_TITLE = "My Awesome PWA App";
 const APP_TITLE_TEMPLATE = "%s - PWA App";
 const APP_DESCRIPTION = "Best PWA app in the world!";
@@ -34,7 +30,7 @@ export const metadata: Metadata = {
     // startUpImage: [],
   },
   other: {
-    'mobile-web-app-capable': 'yes',
+    "mobile-web-app-capable": "yes",
   },
   formatDetection: {
     telephone: false,
@@ -61,7 +57,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "transparent" },
-    { media: "(prefers-color-scheme: dark)", color: "transparent" }
+    { media: "(prefers-color-scheme: dark)", color: "transparent" },
   ],
 };
 
@@ -72,10 +68,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <PrivyProvider>{children}</PrivyProvider>
+      <body className={`${instrumentSerif.variable} antialiased`}>
+        <PrivyProvider>
+          <LiquidGLLoader />
+          {children}
+        </PrivyProvider>
       </body>
     </html>
   );
